@@ -1,4 +1,5 @@
 #include <iostream>
+#include <conio.h>
 using namespace std;
 
 #pragma region Globals
@@ -20,6 +21,16 @@ Movement movement;
 
 #pragma endregion
 
+#pragma region Helpers
+
+void PlaceFood()
+{
+    foodX = rand() % width;
+    foodY = rand() % height;
+}
+
+#pragma endregion
+
 void Setup()
 {
     gameOver = false;
@@ -30,8 +41,7 @@ void Setup()
     snakeY = height / 2;
 
     // Place initial target randomly
-    foodX = rand() % width;
-    foodY = rand() % height;
+    PlaceFood();
 }
 
 void Draw()
@@ -57,7 +67,19 @@ void Draw()
                 cout << '#';
             }
 
-            cout << ' ';
+            // Print other things
+            if (i == snakeY && j == snakeX)
+            {
+                cout << 'O';
+            }
+            else if (i == foodY && j == foodX)
+            {
+                cout << 'X';
+            }
+            else
+            {
+                cout << ' ';
+            }
 
             // Print out wall
             if (j == width - 1)
@@ -77,14 +99,64 @@ void Draw()
     }
 
     cout << endl;
+    cout << "Score: " << score << endl;
 }
 
 void Input()
 {
+    if (_kbhit())
+    {
+        switch (_getch())
+        {
+        case 'w':
+            movement = Movement::UP;
+            break;
+        case 'a':
+            movement = Movement::LEFT;
+            break;
+        case 's':
+            movement = Movement::DOWN;
+            break;
+        case 'd':
+            movement = Movement::RIGHT;
+            break;
+        case 'x':
+            gameOver = true;
+            break;
+        }
+    }
 }
 
 void Logic()
 {
+    switch (movement)
+    {
+    case Movement::UP:
+        snakeY--;
+        break;
+    case Movement::RIGHT:
+        snakeX++;
+        break;
+    case Movement::DOWN:
+        snakeY++;
+        break;
+    case Movement::LEFT:
+        snakeX--;
+        break;
+    }
+
+    // Hit the wall, game over
+    if (snakeX > width || snakeX < 0 || snakeY > height || snakeY < 0)
+    {
+        gameOver = true;
+    }
+
+    // Eat the food
+    if (snakeX == foodX && snakeY == foodY)
+    {
+        score += 10;
+        PlaceFood();
+    }
 }
 
 int main()
