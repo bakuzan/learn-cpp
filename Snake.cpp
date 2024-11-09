@@ -1,5 +1,6 @@
 #include <iostream>
 #include <conio.h>
+#include <windows.h>
 using namespace std;
 
 #pragma region Globals
@@ -17,6 +18,8 @@ bool gameOver;
 const int width = 20;
 const int height = 20;
 int snakeX, snakeY, foodX, foodY, score;
+int tailX[100], tailY[100];
+int tailLength;
 Movement movement;
 
 #pragma endregion
@@ -46,7 +49,11 @@ void Setup()
 
 void Draw()
 {
-    system("cls"); // Clear terminal...duhh!
+    // Clear screen
+    CONSOLE_CURSOR_INFO info;
+    info.dwSize = 100;
+    info.bVisible = false;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 0});
 
     // Top Wall
     for (int i = 0; i < width + 2; i++)
@@ -78,7 +85,20 @@ void Draw()
             }
             else
             {
-                cout << ' ';
+                bool printTail = false;
+                for (int k = 0; k < tailLength; k++)
+                {
+                    if (tailX[k] == j && tailY[k] == i)
+                    {
+                        cout << "o";
+                        printTail = true;
+                    }
+                }
+
+                if (!printTail)
+                {
+                    cout << ' ';
+                }
             }
 
             // Print out wall
@@ -129,6 +149,25 @@ void Input()
 
 void Logic()
 {
+    // Update snake tail positions
+    int prevTailX = tailX[0];
+    int prevTailY = tailY[0];
+    int prevTail2X, prevTail2Y;
+
+    tailX[0] = snakeX;
+    tailY[0] = snakeY;
+
+    for (int i = 1; i < tailLength; i++)
+    {
+        prevTail2X = tailX[i];
+        prevTail2Y = tailY[i];
+        tailX[i] = prevTailX;
+        tailY[i] = prevTailY;
+        prevTailX = prevTail2X;
+        prevTailY = prevTail2Y;
+    }
+
+    // Shift snake direction
     switch (movement)
     {
     case Movement::UP:
@@ -146,9 +185,28 @@ void Logic()
     }
 
     // Hit the wall, game over
-    if (snakeX > width || snakeX < 0 || snakeY > height || snakeY < 0)
+    // if (snakeX > width || snakeX < 0 || snakeY > height || snakeY < 0)
+    // {
+    //     gameOver = true;
+    // }
+
+    // Hit the wall, come out the other side
+    if (snakeX >= width)
+        snakeX = 0;
+    else if (snakeX < 0)
+        snakeX = width - 1;
+    if (snakeY >= height)
+        snakeY = 0;
+    else if (snakeY < 0)
+        snakeY = height - 1;
+
+    // Hit yourself, game over
+    for (int i = 0; i < tailLength; i++)
     {
-        gameOver = true;
+        if (tailX[i] == snakeX && tailY[i] == snakeY)
+        {
+            gameOver = true;
+        }
     }
 
     // Eat the food
@@ -156,6 +214,7 @@ void Logic()
     {
         score += 10;
         PlaceFood();
+        tailLength++;
     }
 }
 
@@ -168,7 +227,7 @@ int main()
         Draw();
         Input();
         Logic();
-        // Sleep(10);
+        Sleep(1000 / 10); // Slow the refresh rate n times per second
     }
 
     return 0;
