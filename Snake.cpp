@@ -26,6 +26,19 @@ Movement movement;
 
 #pragma region Helpers
 
+void ResetConsole()
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+
+    cursorInfo.dwSize = 100;
+    cursorInfo.bVisible = FALSE;
+
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
+    SetConsoleCursorPosition(hConsole, {0, 0});
+}
+
 void PlaceFood()
 {
     foodX = rand() % width;
@@ -49,11 +62,7 @@ void Setup()
 
 void Draw()
 {
-    // Clear screen
-    CONSOLE_CURSOR_INFO info;
-    info.dwSize = 100;
-    info.bVisible = false;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 0});
+    ResetConsole();
 
     // Top Wall
     for (int i = 0; i < width + 2; i++)
